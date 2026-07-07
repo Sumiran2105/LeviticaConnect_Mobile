@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Levitica Connect</string>
+    <string name="title_activity_main">Levitica Connect</string>
+    <string name="package_name">com.levitica.connect</string>
+    <string name="custom_url_scheme">com.levitica.connect</string>
+</resources>

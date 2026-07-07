@@ -136,13 +136,20 @@ export function LoginForm({ audience = "workspace", redirectPath = "" }) {
       toast.error("Login response is missing the data needed to continue.");
     },
     onError: (error) => {
-      const message =
-        error?.response?.data?.message ||
-        error?.response?.data?.detail ||
-        "Unable to sign in right now. Please check your credentials.";
+  console.log("LOGIN ERROR", error);
+  console.log("RESPONSE", error.response);
+  console.log("REQUEST", error.request);
+  console.log("MESSAGE", error.message);
+  console.log("CODE", error.code);
 
-      toast.error(message);
-    },
+  const message =
+    error?.response?.data?.message ||
+    error?.response?.data?.detail ||
+    error?.message ||
+    "Unable to sign in right now.";
+
+  toast.error(message);
+},
   });
 
   const onSubmit = handleSubmit((values) => {

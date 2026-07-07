@@ -7,6 +7,7 @@ import { IncomingCallLayer } from "@/features/meetings/components/incoming-call-
 import { SuperAdminRoutes } from "@/features/super-admin-dashboard/routes";
 import { UserRoutes } from "@/features/user-dashboard/routes";
 import { useAuthStore } from "@/store/auth-store";
+import {isMobileApp} from "@/utils/platform";
 
 const LandingPage = lazy(() => import("@/features/landing/pages/landing").then((module) => ({ default: module.LandingPage })));
 const FeatureDetailsPage = lazy(() => import("@/features/landing/pages/landing/feature-details").then((module) => ({ default: module.FeatureDetailsPage })));
@@ -92,11 +93,15 @@ export function AppRouter() {
         <Route
           path="/"
           element={
-            <RouteErrorBoundary routeName="Landing">
-              <LazyRoute>
-                <LandingPage />
-              </LazyRoute>
-            </RouteErrorBoundary>
+            isMobileApp() ? (
+              <Navigate to="/login" replace />
+            ) : (
+              <RouteErrorBoundary routeName="Landing">
+                <LazyRoute>
+                  <LandingPage />
+                </LazyRoute>
+              </RouteErrorBoundary>
+            )
           }
         />
         <Route
