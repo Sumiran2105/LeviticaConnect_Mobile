@@ -329,6 +329,7 @@ export function SharedMeetingRoomPage({ layout = "user" }) {
   const leaveAttemptedRef = useRef(false);
   const joinedMeetingRef = useRef(false);
   const leftToastShownRef = useRef(false);
+  const meetingEndedRef = useRef(false);
   const prefetchedCredentialsRef = useRef(
     normalizeLiveKitCredentials(location.state?.connectionDetails)
   );
@@ -499,6 +500,17 @@ export function SharedMeetingRoomPage({ layout = "user" }) {
       toast.error(error.userMessage || "Unable to remove participant.");
     },
   });
+  const endMeeting = useCallback(async () => {
+    if (meetingEndedRef.current) return;
+
+    meetingEndedRef.current = true;
+
+    try {
+        await leaveMeeting(true);
+    } catch (e) {
+        console.error(e);
+    }
+}, [leaveMeeting]);
 
   useEffect(() => {
     if (session?.accessToken) {
@@ -1034,7 +1046,7 @@ export function SharedMeetingRoomPage({ layout = "user" }) {
 
   function handleDisconnected() {
     toast.message("Call ended");
-    void leaveMeeting(true);
+    void endMeeting();
   }
 
   async function sendMeetingAction(endpoint, successMessage) {
@@ -1330,7 +1342,7 @@ export function SharedMeetingRoomPage({ layout = "user" }) {
 
                 toast.info("The other participant has left the call.");
 
-                void leaveMeeting(true);
+                void endMeeting();
               }}
             />
           </Suspense>
