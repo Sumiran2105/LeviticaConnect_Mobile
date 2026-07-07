@@ -16,6 +16,8 @@ export const USER_UPDATE_PROFILE = (userId) => `/auth/users/${userId}/profile`;
 export const AUTH_SESSIONS = "/auth/sessions";
 export const AUTH_DELETE_SESSION = (sessionId) => `/auth/sessions/${sessionId}`;
 
+export const LANDING_DEMO_REQUEST = "/api/v1/landing/demo-request";
+
 export const SUPERADMIN_CREATE_COMPANY = "/superadmin/create-company";
 export const SUPERADMIN_VERIFY_COMPANY_OTP = (companyId) => `/superadmin/verify-otp/${companyId}`;
 export const SUPERADMIN_RESEND_COMPANY_OTP = (companyId) => `/superadmin/resend-otp/${companyId}`;

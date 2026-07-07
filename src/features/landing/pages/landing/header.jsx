@@ -1,8 +1,24 @@
-import { Menu } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { CalendarCheck, Menu } from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Textarea } from "@/components/ui/textarea";
+import { LANDING_DEMO_REQUEST } from "@/config/api";
+import { apiClient } from "@/lib/client";
 
 const navItems = [
   { label: "Home", href: "/" },
@@ -12,6 +28,19 @@ const navItems = [
 ];
 
 export function Header() {
+  const demoRequestMutation = useMutation({
+    mutationFn: async (payload) => {
+      const response = await apiClient.post(LANDING_DEMO_REQUEST, payload);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      toast.success(data?.message || "Demo request submitted successfully.");
+    },
+    onError: (error) => {
+      toast.error(error?.userMessage || error?.message || "Unable to submit demo request right now.");
+    },
+  });
+
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-brand-line/70 bg-white/90 backdrop-blur-xl">
       <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-5 sm:px-6 lg:px-10">
@@ -33,6 +62,14 @@ export function Header() {
               {item.label}
             </Link>
           ))}
+          <RequestDemoDialog mutation={demoRequestMutation}>
+            <Button
+              variant="outline"
+              className="h-10 rounded-full border-brand-primary/25 bg-brand-soft/60 px-5 text-sm font-semibold text-brand-primary shadow-sm hover:border-brand-primary/40 hover:bg-brand-soft"
+            >
+              Request Demo
+            </Button>
+          </RequestDemoDialog>
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
@@ -61,6 +98,14 @@ export function Header() {
                     {item.label}
                   </Link>
                 ))}
+                <RequestDemoDialog mutation={demoRequestMutation}>
+                  <Button
+                    variant="outline"
+                    className="h-12 w-full justify-center rounded-full border-brand-primary/25 bg-brand-soft/60 px-5 font-semibold text-brand-primary hover:bg-brand-soft"
+                  >
+                    Request Demo
+                  </Button>
+                </RequestDemoDialog>
                 <div className="my-2 h-px bg-brand-line" />
                 <Button className="h-12 w-full justify-center rounded-full bg-brand-primary px-5 text-white" asChild>
                   <Link to="/register">Get Started</Link>
@@ -74,5 +119,108 @@ export function Header() {
         </div>
       </div>
     </header>
+  );
+}
+
+function RequestDemoDialog({ children, mutation }) {
+  const [open, setOpen] = useState(false);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+
+    const payload = {
+      name: String(formData.get("name") || "").trim(),
+      company_name: String(formData.get("company_name") || "").trim(),
+      employee_count: Number(formData.get("employee_count")),
+      mobile_number: String(formData.get("mobile_number") || "").trim(),
+      message: String(formData.get("message") || "").trim(),
+    };
+
+    try {
+      await mutation.mutateAsync(payload);
+      form.reset();
+      setOpen(false);
+    } catch {
+      // The mutation toast already explains the failure; keep the form open for retry.
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent className="max-h-[88vh] w-[calc(100vw-2rem)] overflow-y-auto rounded-[24px] border border-brand-line bg-white p-0 shadow-2xl sm:max-w-2xl">
+        <DialogHeader className="border-b border-brand-line bg-brand-soft/30 px-5 py-5 text-left sm:px-8">
+          <div className="mb-1 flex size-11 items-center justify-center rounded-full bg-brand-primary/10 text-brand-primary">
+            <CalendarCheck className="size-5" />
+          </div>
+          <DialogTitle className="text-2xl font-bold tracking-tight text-brand-ink">Request Demo</DialogTitle>
+          <DialogDescription className="text-sm leading-6 text-brand-secondary">
+            Share a few details and our team will help you explore Levitica Connect for your workspace.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form className="grid gap-5 px-5 py-5 sm:grid-cols-2 sm:px-8 sm:py-6" onSubmit={handleSubmit}>
+          <FormField id="demo-name" label="Name" placeholder="Enter your name" required />
+          <FormField id="demo-company" label="Company name" placeholder="Enter company name" required />
+          <FormField
+            id="demo-employees"
+            label="No. of employees"
+            min="1"
+            placeholder="How many employees?"
+            required
+            type="number"
+          />
+          <FormField id="demo-mobile" label="Mobile number" placeholder="Enter mobile number" required type="tel" />
+
+          <div className="grid gap-2 sm:col-span-2">
+            <Label htmlFor="demo-message" className="text-brand-ink">
+              Message
+            </Label>
+            <Textarea
+              id="demo-message"
+              name="message"
+              className="min-h-28 rounded-2xl border-brand-line bg-white px-4 py-3 text-brand-ink focus-visible:ring-brand-primary"
+              placeholder="Tell us what your team wants to use the application for"
+              required
+            />
+          </div>
+
+          <div className="flex flex-col gap-3 border-t border-brand-line pt-5 sm:col-span-2 sm:flex-row sm:items-center sm:justify-end">
+            <Button
+              disabled={mutation.isPending}
+              type="submit"
+              className="h-12 w-full rounded-full bg-brand-primary px-7 text-sm font-semibold text-white shadow-lg shadow-brand-primary/20 hover:bg-brand-primary/90 sm:w-auto"
+            >
+              {mutation.isPending ? "Submitting..." : "Submit Request"}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function FormField({ id, label, ...props }) {
+  const fieldName = {
+    "demo-company": "company_name",
+    "demo-employees": "employee_count",
+    "demo-mobile": "mobile_number",
+  }[id] || id.replace("demo-", "");
+
+  return (
+    <div className="grid gap-2">
+      <Label htmlFor={id} className="text-brand-ink">
+        {label}
+      </Label>
+      <Input
+        id={id}
+        name={fieldName}
+        className="h-12 rounded-2xl border-brand-line bg-white px-4 text-brand-ink placeholder:text-brand-secondary/50 focus-visible:border-brand-primary focus-visible:ring-brand-primary/25"
+        {...props}
+      />
+    </div>
   );
 }
