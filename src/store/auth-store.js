@@ -116,7 +116,7 @@ export const useAuthStore = create(
     }),
     {
       name: "Levitica Connect-auth",
-      storage: createJSONStorage(() => sessionStorage),
+      storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         session: state.session,
         pendingMfaSession: state.pendingMfaSession,
