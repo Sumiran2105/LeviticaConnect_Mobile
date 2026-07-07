@@ -26,7 +26,7 @@ export const SUPERADMIN_APPROVE_COMPANY = (companyId) =>
 export const SUPERADMIN_ACTIVATE_COMPANY_ADMIN = "/superadmin/activate";
 export const SUPERADMIN_COMPANIES = "/superadmin/companies";
 export const SUPERADMIN_DELETE_COMPANY = (companyId) => `/superadmin/companies/${companyId}`;
-export const SUPERADMIN_PENDING_COMPANIES = "/superadmin/companies/pending";
+export const SUPERADMIN_PENDING_COMPANIES = "/superadmin/companies/pending-approval";
 export const SUPERADMIN_REJECT_COMPANY = (companyId) => `/superadmin/companies/${companyId}/reject`;
 export const SUPERADMIN_DASHBOARD_OVERVIEW = "/superadmin/dashboard";
 export const SUPERADMIN_ANALYTICS_REVENUE = "/superadmin/analytics/revenue";
