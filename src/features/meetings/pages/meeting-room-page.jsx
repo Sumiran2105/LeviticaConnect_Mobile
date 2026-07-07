@@ -214,25 +214,56 @@ const LiveKitMeetingRoom = lazy(async () => {
     RoomAudioRenderer,
     useParticipants,
     VideoConference,
+    useRoomContext,
   } = await import("@livekit/components-react");
 
   function CallMonitor({ isDirect, onLeave }) {
-    const participants = useParticipants();
-    const hadOtherParticipantsRef = useRef(false);
+  const participants = useParticipants();
+  const room = useRoomContext();
 
-    useEffect(() => {
-      if (participants.length > 1) {
-        hadOtherParticipantsRef.current = true;
-        return;
-      }
+  const hadOtherParticipantsRef = useRef(false);
+  const leavingRef = useRef(false);
 
-      if (isDirect && hadOtherParticipantsRef.current && participants.length <= 1) {
+  useEffect(() => {
+    // Wait until another participant actually joins.
+    if (participants.length > 1) {
+      hadOtherParticipantsRef.current = true;
+    }
+
+    // Don't leave if:
+    // - Not a direct call
+    // - Already leaving
+    // - Nobody else ever joined
+    if (
+      !isDirect ||
+      leavingRef.current ||
+      !hadOtherParticipantsRef.current
+    ) {
+      return;
+    }
+
+    // Only you remain in the room.
+    if (participants.length <= 1) {
+      leavingRef.current = true;
+
+      (async () => {
+        try {
+          console.log("Disconnecting LiveKit room...");
+
+          await room.disconnect();
+
+          console.log("LiveKit disconnected.");
+        } catch (err) {
+          console.error("LiveKit disconnect failed", err);
+        }
+
         onLeave();
-      }
-    }, [isDirect, participants.length, onLeave]);
+      })();
+    }
+  }, [participants.length, isDirect, room, onLeave]);
 
-    return null;
-  }
+  return null;
+}
 
   function LiveKitMeetingRoomComponent({
     callMode,
@@ -297,6 +328,7 @@ export function SharedMeetingRoomPage({ layout = "user" }) {
   const participantNameRef = useRef(session?.full_name || session?.name || "Participant");
   const leaveAttemptedRef = useRef(false);
   const joinedMeetingRef = useRef(false);
+  const leftToastShownRef = useRef(false);
   const prefetchedCredentialsRef = useRef(
     normalizeLiveKitCredentials(location.state?.connectionDetails)
   );
@@ -492,6 +524,9 @@ export function SharedMeetingRoomPage({ layout = "user" }) {
   }, [currentUserId, raisedHands]);
 
   const leaveMeeting = useCallback(async (shouldNavigate = true) => {
+    if (leaveAttemptedRef.current) {
+        return;
+    }
     const activeSession = session?.accessToken ? session : sessionRef.current;
 
     if (isExternalLiveKitRoom) {
@@ -1118,74 +1153,74 @@ export function SharedMeetingRoomPage({ layout = "user" }) {
           </div>
 
           {!isExternalLiveKitRoom ? (
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => void toggleHandRaised()}
-              disabled={isSendingMeetingAction}
-              className={`h-10 rounded-xl border px-3 text-xs font-bold transition ${
-                isHandRaised
-                  ? "border-amber-300/30 bg-amber-300/15 text-amber-100 hover:bg-amber-300/20"
-                  : "border-white/10 bg-white/5 text-white/75 hover:bg-white/10 hover:text-white"
-              }`}
-            >
-              {isSendingMeetingAction ? (
-                <LoaderCircle className="mr-2 size-4 animate-spin" />
-              ) : (
-                <Hand className="mr-2 size-4" />
-              )}
-              {isHandRaised ? "Lower hand" : "Raise hand"}
-            </Button>
-
-            <div>
+            <div className="flex flex-wrap items-center gap-2">
               <Button
                 type="button"
                 variant="ghost"
-                onClick={() => {
-                  setIsAddParticipantOpen((open) => !open);
-                  void userOptionsQuery.refetch();
-                }}
-                className="h-10 rounded-xl border border-white/10 bg-white/5 px-3 text-xs font-bold text-white/75 transition hover:bg-white/10 hover:text-white"
+                onClick={() => void toggleHandRaised()}
+                disabled={isSendingMeetingAction}
+                className={`h-10 rounded-xl border px-3 text-xs font-bold transition ${
+                  isHandRaised
+                    ? "border-amber-300/30 bg-amber-300/15 text-amber-100 hover:bg-amber-300/20"
+                    : "border-white/10 bg-white/5 text-white/75 hover:bg-white/10 hover:text-white"
+                }`}
               >
-                <Plus className="mr-2 size-4" />
-                Add participant
+                {isSendingMeetingAction ? (
+                  <LoaderCircle className="mr-2 size-4 animate-spin" />
+                ) : (
+                  <Hand className="mr-2 size-4" />
+                )}
+                {isHandRaised ? "Lower hand" : "Raise hand"}
               </Button>
-            </div>
 
-            <div className="flex items-center gap-1 rounded-xl border border-white/10 bg-white/5 p-1">
-              {MEETING_REACTIONS.map((emoji) => (
-                <button
-                  key={emoji}
+              <div>
+                <Button
                   type="button"
-                  onClick={() => void sendReaction(emoji)}
-                  disabled={isSendingMeetingAction}
-                  className="flex size-8 items-center justify-center rounded-lg text-base transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
-                  title={`Send ${emoji}`}
+                  variant="ghost"
+                  onClick={() => {
+                    setIsAddParticipantOpen((open) => !open);
+                    void userOptionsQuery.refetch();
+                  }}
+                  className="h-10 rounded-xl border border-white/10 bg-white/5 px-3 text-xs font-bold text-white/75 transition hover:bg-white/10 hover:text-white"
                 >
-                  {emoji}
-                </button>
-              ))}
-            </div>
+                  <Plus className="mr-2 size-4" />
+                  Add participant
+                </Button>
+              </div>
 
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsParticipantsOpen((open) => !open);
-                  void participantsQuery.refetch();
-                  void activeParticipantsQuery.refetch();
-                }}
-                className="inline-flex h-10 items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 text-xs font-bold text-white/75 transition hover:bg-white/10 hover:text-white"
-              >
-                <Users className="size-4" />
-                Participants
-                <span className="rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] text-white/70">
-                  {activeParticipantCount} active
-                </span>
-              </button>
+              <div className="flex items-center gap-1 rounded-xl border border-white/10 bg-white/5 p-1">
+                {MEETING_REACTIONS.map((emoji) => (
+                  <button
+                    key={emoji}
+                    type="button"
+                    onClick={() => void sendReaction(emoji)}
+                    disabled={isSendingMeetingAction}
+                    className="flex size-8 items-center justify-center rounded-lg text-base transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+                    title={`Send ${emoji}`}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsParticipantsOpen((open) => !open);
+                    void participantsQuery.refetch();
+                    void activeParticipantsQuery.refetch();
+                  }}
+                  className="inline-flex h-10 items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 text-xs font-bold text-white/75 transition hover:bg-white/10 hover:text-white"
+                >
+                  <Users className="size-4" />
+                  Participants
+                  <span className="rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] text-white/70">
+                    {activeParticipantCount} active
+                  </span>
+                </button>
+              </div>
             </div>
-          </div>
           ) : null}
         </div>
       </div>
@@ -1194,16 +1229,27 @@ export function SharedMeetingRoomPage({ layout = "user" }) {
         <div className="flex flex-1 items-center justify-center p-6">
           <div
             className={`flex max-w-md flex-col items-center gap-4 rounded-[28px] border px-8 py-10 text-center shadow-sm ${
-              isStandalone ? "border-white/10 bg-white/5 text-white" : "border-brand-line bg-white"
+              isStandalone
+                ? "border-white/10 bg-white/5 text-white"
+                : "border-brand-line bg-white"
             }`}
           >
             <LoaderCircle className="size-10 animate-spin text-brand-primary" />
             <div>
-              <h2 className={`text-lg font-bold ${isStandalone ? "text-white" : "text-brand-ink"}`}>
+              <h2
+                className={`text-lg font-bold ${
+                  isStandalone ? "text-white" : "text-brand-ink"
+                }`}
+              >
                 Connecting to your room
               </h2>
-              <p className={`mt-2 text-sm ${isStandalone ? "text-white/60" : "text-brand-secondary"}`}>
-                We&apos;re fetching the meeting token and setting up audio, video, and screen sharing.
+              <p
+                className={`mt-2 text-sm ${
+                  isStandalone ? "text-white/60" : "text-brand-secondary"
+                }`}
+              >
+                We&apos;re fetching the meeting token and setting up audio,
+                video, and screen sharing.
               </p>
             </div>
           </div>
@@ -1214,19 +1260,33 @@ export function SharedMeetingRoomPage({ layout = "user" }) {
         <div className="flex flex-1 items-center justify-center p-6">
           <div
             className={`max-w-lg rounded-[28px] border px-8 py-10 shadow-sm ${
-              isStandalone ? "border-red-500/20 bg-white/5" : "border-red-200 bg-white"
+              isStandalone
+                ? "border-red-500/20 bg-white/5"
+                : "border-red-200 bg-white"
             }`}
           >
-            <h2 className={`text-lg font-bold ${isStandalone ? "text-white" : "text-brand-ink"}`}>
+            <h2
+              className={`text-lg font-bold ${
+                isStandalone ? "text-white" : "text-brand-ink"
+              }`}
+            >
               Unable to open this meeting
             </h2>
-            <p className={`mt-3 text-sm leading-6 ${isStandalone ? "text-white/60" : "text-brand-secondary"}`}>
+            <p
+              className={`mt-3 text-sm leading-6 ${
+                isStandalone ? "text-white/60" : "text-brand-secondary"
+              }`}
+            >
               {errorMessage}
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Button
                 type="button"
-                onClick={() => (isStandalone ? window.close() : navigate(homePath, { replace: true }))}
+                onClick={() =>
+                  isStandalone
+                    ? window.close()
+                    : navigate(homePath, { replace: true })
+                }
                 className="rounded-xl bg-brand-primary px-5 py-2.5 font-bold text-white hover:bg-brand-primary/90"
               >
                 {isStandalone ? "Close Window" : "Return"}
@@ -1236,7 +1296,9 @@ export function SharedMeetingRoomPage({ layout = "user" }) {
                 variant="outline"
                 onClick={() => window.location.reload()}
                 className={`rounded-xl px-5 py-2.5 font-bold ${
-                  isStandalone ? "border-white/10 text-white hover:bg-white/5" : ""
+                  isStandalone
+                    ? "border-white/10 text-white hover:bg-white/5"
+                    : ""
                 }`}
               >
                 Retry
@@ -1248,7 +1310,9 @@ export function SharedMeetingRoomPage({ layout = "user" }) {
 
       {!isLoading && !errorMessage && connectionDetails ? (
         <div className="min-h-0 flex-1 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.18),transparent_36%),radial-gradient(circle_at_top_right,rgba(16,185,129,0.12),transparent_32%),#08111f] p-3 sm:p-4">
-          <Suspense fallback={<MeetingRoomLoader isStandalone={isStandalone} />}>
+          <Suspense
+            fallback={<MeetingRoomLoader isStandalone={isStandalone} />}
+          >
             <LiveKitMeetingRoom
               callMode={callMode}
               connectionDetails={connectionDetails}
@@ -1260,7 +1324,12 @@ export function SharedMeetingRoomPage({ layout = "user" }) {
               }
               onDisconnected={handleDisconnected}
               onDirectParticipantLeft={() => {
+                if (leftToastShownRef.current) return;
+
+                leftToastShownRef.current = true;
+
                 toast.info("The other participant has left the call.");
+
                 void leaveMeeting(true);
               }}
             />
@@ -1308,32 +1377,43 @@ export function SharedMeetingRoomPage({ layout = "user" }) {
               addableParticipants.map((participant) => {
                 const isAdding =
                   addParticipantMutation.isPending &&
-                  String(addParticipantMutation.variables) === String(participant.id);
+                  String(addParticipantMutation.variables) ===
+                    String(participant.id);
 
                 return (
                   <button
                     key={participant.id}
                     type="button"
-                    onClick={() => addParticipantMutation.mutate(participant.id)}
+                    onClick={() =>
+                      addParticipantMutation.mutate(participant.id)
+                    }
                     disabled={addParticipantMutation.isPending}
                     className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {participant.image ? (
-                      <img src={participant.image} alt="" className="size-9 rounded-full object-cover" />
+                      <img
+                        src={participant.image}
+                        alt=""
+                        className="size-9 rounded-full object-cover"
+                      />
                     ) : (
                       <span className="flex size-9 items-center justify-center rounded-full bg-sky-400/15 text-xs font-black text-sky-100">
                         {getInitials(participant.name)}
                       </span>
                     )}
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-bold text-white">{participant.name}</span>
+                      <span className="block truncate text-sm font-bold text-white">
+                        {participant.name}
+                      </span>
                       {participant.email ? (
                         <span className="block truncate text-xs font-semibold text-white/40">
                           {participant.email}
                         </span>
                       ) : null}
                     </span>
-                    {isAdding ? <LoaderCircle className="size-4 animate-spin text-white/60" /> : null}
+                    {isAdding ? (
+                      <LoaderCircle className="size-4 animate-spin text-white/60" />
+                    ) : null}
                   </button>
                 );
               })
@@ -1359,7 +1439,8 @@ export function SharedMeetingRoomPage({ layout = "user" }) {
               <div>
                 <h3 className="text-base font-black">Participants</h3>
                 <p className="mt-1 text-xs font-semibold text-white/45">
-                  {activeParticipantCount} currently in call • {participants.length} invited/history
+                  {activeParticipantCount} currently in call •{" "}
+                  {participants.length} invited/history
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -1396,15 +1477,19 @@ export function SharedMeetingRoomPage({ layout = "user" }) {
                 </div>
               ) : participants.length ? (
                 participants.map((participant) => {
-                  const isInCall = activeParticipantIds.has(String(participant.id));
+                  const isInCall = activeParticipantIds.has(
+                    String(participant.id),
+                  );
                   const isCurrentUser =
                     String(participant.id) === String(currentUserId);
                   const isRemoving =
                     removeParticipantMutation.isPending &&
-                    String(removeParticipantMutation.variables) === String(participant.id);
+                    String(removeParticipantMutation.variables) ===
+                      String(participant.id);
                   const isMuting =
                     muteParticipantMutation.isPending &&
-                    String(muteParticipantMutation.variables) === String(participant.id);
+                    String(muteParticipantMutation.variables) ===
+                      String(participant.id);
 
                   return (
                     <div
@@ -1424,14 +1509,20 @@ export function SharedMeetingRoomPage({ layout = "user" }) {
                       )}
                       <div className="min-w-0 flex-1">
                         <div className="flex min-w-0 items-center gap-2">
-                          <p className="truncate text-sm font-bold text-white">{participant.name}</p>
+                          <p className="truncate text-sm font-bold text-white">
+                            {participant.name}
+                          </p>
                           {participant.handRaised ? (
                             <Hand className="size-3.5 shrink-0 text-amber-200" />
                           ) : null}
                         </div>
                         <p className="truncate text-xs font-semibold text-white/40">
                           {participant.role}
-                          <span className={isInCall ? "text-emerald-200" : "text-white/35"}>
+                          <span
+                            className={
+                              isInCall ? "text-emerald-200" : "text-white/35"
+                            }
+                          >
                             {isInCall ? " • In call" : " • Not in call"}
                           </span>
                         </p>
@@ -1445,17 +1536,30 @@ export function SharedMeetingRoomPage({ layout = "user" }) {
                           }`}
                           title={isInCall ? "In call" : "Not in call"}
                         />
-                        {participant.isMuted ? <MicOff className="size-4" /> : null}
-                        {participant.videoEnabled ? null : <VideoOff className="size-4" />}
+                        {participant.isMuted ? (
+                          <MicOff className="size-4" />
+                        ) : null}
+                        {participant.videoEnabled ? null : (
+                          <VideoOff className="size-4" />
+                        )}
                         {!isCurrentUser ? (
                           <>
                             <button
                               type="button"
-                              onClick={() => muteParticipantMutation.mutate(participant.id)}
-                              disabled={muteParticipantMutation.isPending || participant.isMuted}
+                              onClick={() =>
+                                muteParticipantMutation.mutate(participant.id)
+                              }
+                              disabled={
+                                muteParticipantMutation.isPending ||
+                                participant.isMuted
+                              }
                               className="ml-1 rounded-lg p-1.5 text-amber-100 transition hover:bg-amber-400/15 hover:text-amber-50 disabled:cursor-not-allowed disabled:opacity-50"
                               aria-label={`Mute ${participant.name}`}
-                              title={participant.isMuted ? "Participant muted" : "Mute participant"}
+                              title={
+                                participant.isMuted
+                                  ? "Participant muted"
+                                  : "Mute participant"
+                              }
                             >
                               {isMuting ? (
                                 <LoaderCircle className="size-4 animate-spin" />
@@ -1465,7 +1569,9 @@ export function SharedMeetingRoomPage({ layout = "user" }) {
                             </button>
                             <button
                               type="button"
-                              onClick={() => removeParticipantMutation.mutate(participant.id)}
+                              onClick={() =>
+                                removeParticipantMutation.mutate(participant.id)
+                              }
                               disabled={removeParticipantMutation.isPending}
                               className="rounded-lg p-1.5 text-red-200 transition hover:bg-red-500/15 hover:text-red-100 disabled:cursor-not-allowed disabled:opacity-50"
                               aria-label={`Remove ${participant.name}`}
