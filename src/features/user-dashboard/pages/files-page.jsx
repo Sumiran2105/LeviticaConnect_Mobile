@@ -461,10 +461,10 @@ export function FilesPage({ layout = "user" }) {
                   <FolderOpen className="size-10 text-brand-primary" />
                 </div>
                 <h3 className="mb-2 text-xl font-bold text-brand-ink">
-                  {toUserCamelCase("no files found")}
+                  No files found
                 </h3>
-                <p className="max-w-sm text-xs leading-6 text-brand-secondary/80 lowercase">
-                  there are no files matching your current search or category.
+                <p className="max-w-sm text-xs leading-6 text-brand-secondary/80">
+                  There are no files matching your current search or category.
                 </p>
               </div>
             ) : viewMode === "grid" ? (

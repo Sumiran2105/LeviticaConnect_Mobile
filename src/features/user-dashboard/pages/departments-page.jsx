@@ -346,7 +346,7 @@ export function DepartmentsPage() {
           <div className="flex-1 overflow-y-auto overflow-x-hidden [scrollbar-width:thin] [scrollbar-color:rgba(0,0,0,0.15)_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-200 hover:[&::-webkit-scrollbar-thumb]:bg-gray-300">
             <div className="px-6 py-5">
               <div className="mb-3 flex items-center justify-between gap-3">
-                <h3 className="text-xs font-bold uppercase tracking-[0.22em] text-gray-500">
+                <h3 className="text-sm font-bold tracking-[0.1em] text-gray-500">
                   Your departments
                 </h3>
                 <span className="text-xs font-medium text-gray-400">{teams.length}</span>
@@ -360,7 +360,7 @@ export function DepartmentsPage() {
                 ) : null}
 
                 {teamsQuery.isError ? (
-                  <div className="rounded-2xl border border-rose-100 bg-rose-50 px-4 py-4 text-sm text-rose-600">
+                  <div className="rounded-2xl border border-rose-100 bg-rose-50 px-0 py-4 text-sm text-rose-600">
                     Unable to load your departments right now.
                   </div>
                 ) : null}

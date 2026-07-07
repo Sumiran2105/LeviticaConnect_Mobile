@@ -337,6 +337,7 @@ export function UserLayout({
         ) : null}
 
           <section className="relative flex min-w-0 min-h-0 flex-1 flex-col overflow-hidden">
+            {isHomePage && (
             <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-3 border-b border-brand-line/15 bg-white px-4 shadow-[0_6px_24px_rgba(68,83,74,0.05)] sm:h-20 sm:px-6 lg:px-10">
               <div className="hidden items-center gap-2 overflow-hidden whitespace-nowrap md:flex">
                 <span className="text-xs font-bold text-brand-ink/40 leading-none">
@@ -406,6 +407,7 @@ export function UserLayout({
               </div>
             </div>
           </header>
+          )}
 
           <div
             className={`min-h-0 flex-1 overflow-y-auto px-5 py-6 sm:px-8 lg:px-12 lg:py-10 ${contentClassName}`}

@@ -234,16 +234,16 @@ export function ChatSidebar({
                 <div className="mx-auto flex size-11 items-center justify-center rounded-2xl bg-brand-soft text-brand-primary border border-brand-line/45">
                   <SquarePen className="size-5" />
                 </div>
-                <p className="mt-3 text-xs font-bold text-brand-ink">{toUserCamelCase("start new conversation")}</p>
-                <p className="mt-1 text-[10px] font-semibold leading-relaxed text-brand-secondary/70 lowercase">
-                  search for a teammate to begin messaging.
+                <p className="mt-3 text-xs font-bold text-brand-ink">Start New Conversation</p>
+                <p className="mt-1 text-[10px] font-semibold leading-relaxed text-brand-secondary/70">
+                  Search for a teammate to begin messaging.
                 </p>
                 <button
                   type="button"
                   onClick={onNewChatClick}
                   className="mt-4 inline-flex h-9 items-center justify-center rounded-xl bg-gradient-to-r from-[#1094EB] to-[#3B5BFC] hover:from-[#0082f4] hover:to-[#2563EB] text-white shadow-sm border-none px-4 text-[10px] font-extrabold transition-all duration-200 active:scale-[0.98]"
                 >
-                  {toUserCamelCase("new chat")}
+                  New Chat
                 </button>
               </div>
             ) : null}
