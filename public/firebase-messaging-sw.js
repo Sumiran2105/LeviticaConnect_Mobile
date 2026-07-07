@@ -1,0 +1,56 @@
+/* global importScripts, firebase, clients */
+
+importScripts("https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js");
+importScripts("https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js");
+
+const params = new URLSearchParams(self.location.search);
+const firebaseConfig = {
+  apiKey: params.get("apiKey"),
+  authDomain: params.get("authDomain") || undefined,
+  databaseURL: params.get("databaseURL") || undefined,
+  projectId: params.get("projectId"),
+  storageBucket: params.get("storageBucket") || undefined,
+  messagingSenderId: params.get("messagingSenderId"),
+  appId: params.get("appId"),
+};
+
+if (firebaseConfig.apiKey && firebaseConfig.projectId && firebaseConfig.messagingSenderId && firebaseConfig.appId) {
+  firebase.initializeApp(firebaseConfig);
+
+  const messaging = firebase.messaging();
+
+  messaging.onBackgroundMessage((payload) => {
+    const notification = payload.notification || {};
+    const data = payload.data || {};
+    const title = notification.title || data.title || "Levitica Connect";
+    const body = notification.body || data.body || data.content || "You have a new notification.";
+
+    self.registration.showNotification(title, {
+      body,
+      icon: "/assets/icon.png",
+      badge: "/assets/icon.png",
+      tag: data.meeting_id || data.message_id || data.channel_id || undefined,
+      data,
+    });
+  });
+}
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if ("focus" in client) {
+          return client.focus();
+        }
+      }
+
+      if (clients.openWindow) {
+        return clients.openWindow("/");
+      }
+
+      return null;
+    })
+  );
+});

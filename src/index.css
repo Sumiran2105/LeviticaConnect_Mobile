@@ -1,0 +1,163 @@
+@import "@fontsource-variable/geist";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --levitica-primary: #006947;
+  --levitica-secondary: #5f7e6c;
+  --levitica-tertiary: #914440;
+  --levitica-neutral: #f6f6ff;
+  --levitica-ink: #44534a;
+  --levitica-soft: #edf1ee;
+  --levitica-line: #d7ddd8;
+
+  font-family: "Geist Variable", "Segoe UI", sans-serif;
+  color: #44534a;
+  background-color: #f6f6ff;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+@layer base {
+  :root {
+    --background: 240 100% 99%;
+    --foreground: 137 10% 30%;
+    --card: 0 0% 100%;
+    --card-foreground: 137 10% 30%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 137 10% 30%;
+    --primary: 160 100% 21%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 135 14% 43%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 135 14% 93%;
+    --muted-foreground: 137 10% 40%;
+    --accent: 8 39% 41%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 8 67% 47%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 135 13% 86%;
+    --input: 135 13% 86%;
+    --ring: 160 100% 21%;
+    --radius: 1rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+  70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+@keyframes chat-pop-in {
+  0% { opacity: 0; transform: translateY(16px) scale(0.93); }
+  60% { transform: translateY(-2px) scale(1.015); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes reaction-pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  50% { transform: scale(1.12); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-reaction-pop {
+  animation: reaction-pop 0.24s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+@keyframes soft-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+.animate-shimmer {
+  background: linear-gradient(100deg, #e5e7eb 20%, #f8fafc 42%, #e2e8f0 64%);
+  background-size: 200% 100%;
+  animation: shimmer 1.45s ease-in-out infinite;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.3s ease-out both;
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.chat-message-enter {
+  animation: chat-pop-in 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.chat-bubble {
+  position: relative;
+  isolation: isolate;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+.chat-bubble::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255,255,255,0.22), rgba(255,255,255,0));
+  pointer-events: none;
+}
+
+.glass-tooltip {
+  border: 1px solid rgba(255, 255, 255, 0.68);
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.14);
+  backdrop-filter: blur(18px) saturate(140%);
+}
+
+.avatar-online-float {
+  animation: soft-float 2.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-shimmer,
+  .animate-fade-in-up,
+  .animate-pulse-ring,
+  .chat-message-enter,
+  .avatar-online-float {
+    animation: none;
+  }
+}

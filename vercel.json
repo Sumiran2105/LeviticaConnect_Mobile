@@ -1,0 +1,60 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/v1/:path*",
+      "destination": "https://collabration-teams-zrhv.onrender.com/api/v1/:path*"
+    },
+    {
+      "source": "/auth/:path*",
+      "destination": "https://collabration-teams-zrhv.onrender.com/auth/:path*"
+    },
+    {
+      "source": "/plans/:path*",
+      "destination": "https://collabration-teams-zrhv.onrender.com/plans/:path*"
+    },
+    {
+      "source": "/billing/:path*",
+      "destination": "https://collabration-teams-zrhv.onrender.com/billing/:path*"
+    },
+    {
+      "source": "/company/:path*",
+      "destination": "https://collabration-teams-zrhv.onrender.com/company/:path*"
+    },
+    {
+      "source": "/teams/:path*",
+      "destination": "https://collabration-teams-zrhv.onrender.com/teams/:path*"
+    },
+    {
+      "source": "/superadmin/:path*",
+      "destination": "https://collabration-teams-zrhv.onrender.com/superadmin/:path*"
+    },
+    {
+      "source": "/calendar/:path*",
+      "destination": "https://collabration-teams-zrhv.onrender.com/calendar/:path*"
+    },
+    {
+      "source": "/communities/:path*",
+      "destination": "https://collabration-teams-zrhv.onrender.com/communities/:path*"
+    },
+    {
+      "source": "/media/:path*",
+      "destination": "https://collabration-teams-zrhv.onrender.com/media/:path*"
+    },
+    {
+      "source": "/uploads/:path*",
+      "destination": "https://collabration-teams-zrhv.onrender.com/uploads/:path*"
+    },
+    {
+      "source": "/ws/:path*",
+      "destination": "https://collabration-teams-zrhv.onrender.com/ws/:path*"
+    },
+    {
+      "source": "/backend/(.*)",
+      "destination": "https://collabration-teams-zrhv.onrender.com/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
